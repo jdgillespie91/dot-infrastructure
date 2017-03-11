@@ -6,11 +6,19 @@ Resources:
     Properties:
       CidrBlock: "10.0.0.0/16"
       EnableDnsHostnames: "true"
-  MySubnet:
+  MySubnet1:
     Type: "AWS::EC2::Subnet"
     Properties:
       AvailabilityZone: "eu-west-2a"
       CidrBlock: "10.0.0.0/24"
+      MapPublicIpOnLaunch: "true"
+      VpcId:
+        Ref: MyVPC
+  MySubnet2:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      AvailabilityZone: "eu-west-2b"
+      CidrBlock: "10.0.1.0/24"
       MapPublicIpOnLaunch: "true"
       VpcId:
         Ref: MyVPC
@@ -25,7 +33,7 @@ Resources:
       RouteTableId:
         Ref: MyRouteTable
       SubnetId:
-        Ref: MySubnet
+        Ref: MySubnet1
   MyInternetGateway:
     Type: "AWS::EC2::InternetGateway"
   MyRoute:
@@ -78,3 +86,73 @@ Resources:
           ToPort: 443
       VpcId:
         Ref: MyVPC
+  MyEC2Instance:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      AvailabilityZone: "eu-west-2a"
+      ImageId: "ami-ed908589"
+      InstanceInitiatedShutdownBehavior: "terminate"
+      InstanceType: "t2.micro"
+      KeyName: "jakegillespie"
+      SecurityGroupIds:
+        - Ref: MySecurityGroup
+      SubnetId:
+        Ref: MySubnet1
+  MyELB:
+    Type: "AWS::ElasticLoadBalancingV2::LoadBalancer"
+    Properties:
+      SecurityGroups:
+        - Ref: ELBSecurityGroup
+      Subnets:
+        - Ref: MySubnet1
+        - Ref: MySubnet2
+  MyTargetGroup:
+    Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
+    Properties:
+      HealthCheckIntervalSeconds: 15
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      Port: 80
+      Protocol: "HTTP"
+      Targets:
+        -
+          Id:
+            Ref: MyEC2Instance
+          Port: 80
+      UnhealthyThresholdCount: 2
+      VpcId:
+        Ref: MyVPC
+  MyCertificate:
+    Type: "AWS::CertificateManager::Certificate"
+    Properties:
+      DomainName: "jakegillespie.me"
+      SubjectAlternativeNames:
+        - "*.jakegillespie.me"
+  MyListener:
+    Type: "AWS::ElasticLoadBalancingV2::Listener"
+    Properties:
+      DefaultActions:
+        -
+          TargetGroupArn:
+            Ref: MyTargetGroup
+          Type: "forward"
+      LoadBalancerArn:
+        Ref: MyELB
+      Port: 80
+      Protocol: "HTTP"
+  MyListenerTLS:
+    Type: "AWS::ElasticLoadBalancingV2::Listener"
+    Properties:
+      Certificates:
+        -
+          CertificateArn:
+            Ref: MyCertificate
+      DefaultActions:
+        -
+          TargetGroupArn:
+            Ref: MyTargetGroup
+          Type: "forward"
+      LoadBalancerArn:
+        Ref: MyELB
+      Port: 443
+      Protocol: "HTTPS"
