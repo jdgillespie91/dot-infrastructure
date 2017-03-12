@@ -1,0 +1,108 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "The network infrastructure for jakegillespie.me."
+Resources:
+  VPC:
+    Type: "AWS::EC2::VPC"
+    Properties:
+      CidrBlock: "10.0.0.0/16"
+      EnableDnsHostnames: "true"
+  SubnetA:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      AvailabilityZone: "eu-west-2a"
+      CidrBlock: "10.0.0.0/24"
+      MapPublicIpOnLaunch: "true"
+      VpcId: !Ref VPC
+  SubnetB:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      AvailabilityZone: "eu-west-2b"
+      CidrBlock: "10.0.1.0/24"
+      MapPublicIpOnLaunch: "true"
+      VpcId: !Ref VPC
+  RouteTable:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId: !Ref VPC
+  SubnetARouteTableAssociation:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      RouteTableId: !Ref RouteTable
+      SubnetId: !Ref SubnetA
+  SubnetBRouteTableAssociation:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      RouteTableId: !Ref RouteTable
+      SubnetId: !Ref SubnetB
+  InternetGateway:
+    Type: "AWS::EC2::InternetGateway"
+  VPCGatewayAttachment:
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+  Route:
+    Type: "AWS::EC2::Route"
+    Properties:
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId: !Ref InternetGateway
+      RouteTableId: !Ref RouteTable
+  ServerSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "Application server security group, allowing SSH from anywhere and HTTP from the load balancer security group"
+      SecurityGroupIngress:
+        -
+          CidrIp: 0.0.0.0/0
+          IpProtocol: "tcp"
+          FromPort: 22
+          ToPort: 22
+        -
+          SourceSecurityGroupId:
+            Ref: ELBSecurityGroup
+          IpProtocol: "tcp"
+          FromPort: 80
+          ToPort: 80
+      VpcId: !Ref VPC
+  ELBSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "Load balancer security group, allowing HTTP and HTTPS from anywhere"
+      SecurityGroupIngress:
+        -
+          CidrIp: 0.0.0.0/0
+          IpProtocol: "tcp"
+          FromPort: 80
+          ToPort: 80
+        -
+          CidrIp: 0.0.0.0/0
+          IpProtocol: "tcp"
+          FromPort: 443
+          ToPort: 443
+      VpcId: !Ref VPC
+Outputs:
+  VPC:
+    Description: "The VPC"
+    Value: !Ref VPC
+    Export:
+      Name: !Join [ "-", [ !Ref "AWS::StackName", "vpc" ] ]
+  SubnetA:
+    Description: "The public subnet in eu-west-2a"
+    Value: !Ref SubnetA
+    Export:
+      Name: !Join [ "-", [ !Ref "AWS::StackName", "subnet-a" ] ]
+  SubnetB:
+    Description: "The public subnet in eu-west-2b"
+    Value: !Ref SubnetB
+    Export:
+      Name: !Join [ "-", [ !Ref "AWS::StackName", "subnet-b" ] ]
+  ServerSecurityGroup:
+    Description: "The application server security group"
+    Value: !Ref ServerSecurityGroup
+    Export:
+      Name: !Join [ "-", [ !Ref "AWS::StackName", "server-security-group" ] ]
+  ELBSecurityGroup:
+    Description: "The load balancer security group"
+    Value: !Ref ELBSecurityGroup
+    Export:
+      Name: !Join [ "-", [ !Ref "AWS::StackName", "load-balancer-security-group" ] ]

@@ -1,0 +1,15 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "The certificate for jakegillespie.me."
+Resources:
+  Certificate:
+    Type: "AWS::CertificateManager::Certificate"
+    Properties:
+      DomainName: "jakegillespie.me"
+      SubjectAlternativeNames:
+        - "*.jakegillespie.me"
+Outputs:
+  Certificate:
+    Description: "The *.jakegillespie.me certificate"
+    Value: !Ref Certificate
+    Export:
+      Name: "certificate"
