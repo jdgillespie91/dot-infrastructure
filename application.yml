@@ -9,8 +9,7 @@ Resources:
     Type: "AWS::EC2::Instance"
     Properties:
       AvailabilityZone: "eu-west-2a"
-      IamInstanceProfile:
-        Fn::ImportValue: !Join [ "-", [ !Ref NetworkStackName, "s3-read-only-instance-profile" ] ]
+      IamInstanceProfile: !ImportValue "s3-read-only-instance-profile"
       ImageId: "ami-ed908589"
       InstanceInitiatedShutdownBehavior: "terminate"
       InstanceType: "t2.micro"

@@ -12,13 +12,20 @@ Usage
 
 Currently, I'm not aware of best practice around `CloudFormation`__. As such, using the work in this repository is largely manual.
 
-To launch the infrastructure, create a single stack using each of the base templates:
+To launch the infrastructure, first create a single stack using each of the following templates:
 
 - auth.yml
 - certificate.yml
+
+These are resources that I intend to be shared across all resources.
+
+Second, create as many stacks as necessary (likely just one) using the network template:
+
 - network.yml
 
-Then create as many stacks as desired using the application template:
+This creates an isolated network in which to bring up other resources. For example, this might be useful when wanting isolated staging and production environments.
+
+Third and finally, create as many stacks as desired using the application template:
 
 - application.yml
 

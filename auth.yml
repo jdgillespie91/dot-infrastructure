@@ -25,4 +25,4 @@ Outputs:
     Description: "The S3 read-only instance profile"
     Value: !Ref S3ReadOnlyInstanceProfile
     Export:
-      Name: !Join [ "-", [ !Ref "AWS::StackName", "s3-read-only-instance-profile" ] ]
+      Name: "s3-read-only-instance-profile"
