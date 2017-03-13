@@ -1,0 +1,28 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "The authentication infrastructure for jakegillespie.me."
+Resources:
+  S3ReadOnlyRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Service: "ec2.amazonaws.com"
+            Action: "sts:AssumeRole"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+      RoleName: "get-credentials"
+  S3ReadOnlyInstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+      Roles:
+        - !Ref S3ReadOnlyRole
+Outputs:
+  S3ReadOnlyInstanceProfile:
+    Description: "The S3 read-only instance profile"
+    Value: !Ref S3ReadOnlyInstanceProfile
+    Export:
+      Name: !Join [ "-", [ !Ref "AWS::StackName", "s3-read-only-instance-profile" ] ]
