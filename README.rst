@@ -14,21 +14,25 @@ Currently, I'm not aware of best practice around `CloudFormation`__. As such, us
 
 To launch the infrastructure, first create a single stack using each of the following templates:
 
-- auth.yml
-- certificate.yml
+- auth_
+- certificate_
 
-These are resources that I intend to be shared across all resources.
+These are, in some sense, *global* resources.
 
 Second, create as many stacks as necessary (likely just one) using the network template:
 
-- network.yml
+- network_
 
 This creates an isolated network in which to bring up other resources. For example, this might be useful when wanting isolated staging and production environments.
 
 Third and finally, create as many stacks as desired using the application template:
 
-- application.yml
+- application_
 
+.. _application: application.yml
+.. _auth: auth.yml
+.. _certificate: certificate.yml
 .. _cf: https://aws.amazon.com/cloudformation/
+.. _network: network.yml
 
 __ cf_
