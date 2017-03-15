@@ -41,9 +41,9 @@ Finally for infrastructure, create as many stacks as desired using the applicati
 
 - application_
 
-Now, you're ready to configure the application server.
+Now, you're ready to configure the application server. On the box, do the following:
 
-Start by cloning the `projects-api`__ application and running the production configuration.
+- Start by cloning the `projects-api`__ application and running the production configuration.
 
 .. code-block:: bash
 
@@ -51,7 +51,7 @@ Start by cloning the `projects-api`__ application and running the production con
     $ git checkout 7f87fa875b6dc989f36c27f98bb4d2d2f64b0a57
     $ sudo ./bin/run-prod.sh
 
-Do similarly for the `jakegillespie.me` application.
+- Do similarly for the `jakegillespie.me` application.
 
 .. code-block:: bash
 
@@ -59,7 +59,7 @@ Do similarly for the `jakegillespie.me` application.
     $ git checkout 23be6eb95776578167b4a6bc205d32f5d2e253ef
     $ sudo ./bin/run-prod.sh
 
-Then add `haproxy.cfg`_ to :code:`/etc/haproxy/haproxy.cfg` and restart the service.
+- Then add `haproxy.cfg`_ to :code:`/etc/haproxy/haproxy.cfg` and restart the service.
 
 .. code-block:: bash
 
