@@ -48,16 +48,20 @@ Now, you're ready to configure the application server. On the box, do the follow
 .. code-block:: bash
 
     $ git clone https://github.com/jdgillespie91/projects-api
+    $ cd projects-api
     $ git checkout 7f87fa875b6dc989f36c27f98bb4d2d2f64b0a57
     $ sudo ./bin/run-prod.sh
+    $ cd ..
 
 - Do similarly for the `jakegillespie.me` application.
 
 .. code-block:: bash
 
     $ git clone https://github.com/jdgillespie91/jakegillespie.me
+    $ cd jakegillespie.me
     $ git checkout 23be6eb95776578167b4a6bc205d32f5d2e253ef
     $ sudo ./bin/run-prod.sh
+    $ cd ..
 
 - Then add `haproxy.cfg`_ to :code:`/etc/haproxy/haproxy.cfg` and restart the service.
 
