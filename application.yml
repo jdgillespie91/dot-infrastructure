@@ -66,3 +66,14 @@ Resources:
       LoadBalancerArn: !Ref ELB
       Port: 443
       Protocol: "HTTPS"
+Outputs:
+  ELBDNSName:
+    Description: "The DNSName of the application load balancer"
+    Value: !GetAtt ELB.DNSName
+    Export:
+      Name: !Join [ "-", [ !Ref "AWS::StackName", "elb-dns-name" ] ]
+  ELBHostedZoneId:
+    Description: "The hosted zone ID of the application load balancer"
+    Value: !GetAtt ELB.CanonicalHostedZoneID
+    Export:
+      Name: !Join [ "-", [ !Ref "AWS::StackName", "elb-hosted-zone-id" ] ]

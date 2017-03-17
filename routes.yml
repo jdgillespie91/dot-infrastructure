@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "The routes configuration for jakegillespie.me."
+Parameters:
+  ApplicationStackName:
+    Description: "The name of the stack that contains the application resources to be used in this stack"
+    Type: "String"
+Resources:
+  HostedZone:
+    Type: "AWS::Route53::HostedZone"
+    Properties:
+      Name: "jakegillespie.me."
+  RecordSet:
+    Type: "AWS::Route53::RecordSet"
+    Properties:
+      AliasTarget:
+        DNSName:
+          Fn::ImportValue: !Join [ "-", [ !Ref ApplicationStackName, "elb-dns-name" ] ]
+        HostedZoneId:
+          Fn::ImportValue: !Join [ "-", [ !Ref ApplicationStackName, "elb-hosted-zone-id" ] ]
+      HostedZoneId: !Ref HostedZone
+      Name: "jakegillespie.me."
+      Type: "A"
+  ProjectsRecordSet:
+    Type: "AWS::Route53::RecordSet"
+    Properties:
+      AliasTarget:
+        DNSName:
+          Fn::ImportValue: !Join [ "-", [ !Ref ApplicationStackName, "elb-dns-name" ] ]
+        HostedZoneId:
+          Fn::ImportValue: !Join [ "-", [ !Ref ApplicationStackName, "elb-hosted-zone-id" ] ]
+      HostedZoneId: !Ref HostedZone
+      Name: "projects.jakegillespie.me."
+      Type: "A"
+  ProjectsStagingRecordSet:
+    Type: "AWS::Route53::RecordSet"
+    Properties:
+      AliasTarget:
+        DNSName:
+          Fn::ImportValue: !Join [ "-", [ !Ref ApplicationStackName, "elb-dns-name" ] ]
+        HostedZoneId:
+          Fn::ImportValue: !Join [ "-", [ !Ref ApplicationStackName, "elb-hosted-zone-id" ] ]
+      HostedZoneId: !Ref HostedZone
+      Name: "projects-staging.jakegillespie.me."
+      Type: "A"

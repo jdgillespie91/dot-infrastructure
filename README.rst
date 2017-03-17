@@ -37,9 +37,15 @@ Then create as many stacks as necessary (likely just one) using the network temp
 
 This creates an isolated network in which to bring up other resources. For example, this might be useful when wanting isolated staging and production environments.
 
-Finally for infrastructure, create as many stacks as desired using the application template (note that you'll need to pass the AMI ID created earlier as a parameter when creating this stack):
+Then create as many stacks as desired using the application template (note that you'll need to pass the AMI ID created earlier as a parameter when creating this stack):
 
 - application_
+
+Finally for infrastructure, create a single routes stack using the routes template:
+
+- routes_
+
+Depending on where your domain is registered, you might need to do some further configuration so that your registrar points to the right name servers. My domain is registered with GoDaddy so `these steps`__ are required.
 
 Now, you're ready to configure the application server. On the box, do the following:
 
@@ -69,19 +75,24 @@ Now, you're ready to configure the application server. On the box, do the follow
 
     sudo service haproxy restart
 
+Now, everything should work as intended.
+
 .. _application: application.yml
 .. _auth: auth.yml
 .. _certificate: certificate.yml
 .. _network: network.yml
 .. _haproxy.cfg: haproxy.cfg
+.. _routes: routes.yml
 .. _iam: https://docs.aws.amazon.com/IAM/latest/UserGuide/getting-started_create-admin-group.html
 .. _packer: https://www.packer.io/intro/getting-started/setup.html
 .. _ami: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIs.html
 .. _cf: https://aws.amazon.com/cloudformation/
+.. _godaddy_ns: https://uk.godaddy.com/help/set-custom-nameservers-for-domains-registered-with-godaddy-12317
 .. _projects: https://github.com/jdgillespie91/projects-api/
 
 __ iam_
 __ packer_
 __ ami_
 __ cf_
+__ godaddy_ns_
 __ projects_
