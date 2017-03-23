@@ -1,0 +1,35 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "The GoCD infrastructure for jakegillespie.me."
+Parameters:
+  NetworkStackName:
+    Description: "The name of the stack that contains the networking resources to be used in this stack"
+    Type: "String"
+  GoCDAMI:
+    Description: "The AMI ID of the GoCD AMI"
+    Type: "String"
+Resources:
+  EC2Instance:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      AvailabilityZone: "eu-west-2a"
+      ImageId: !Ref GoCDAMI
+      InstanceInitiatedShutdownBehavior: "terminate"
+      InstanceType: "t2.medium"
+      KeyName: "jakegillespie"
+      SecurityGroupIds:
+        - Fn::ImportValue: !Join [ "-", [ !Ref NetworkStackName, "server-security-group" ] ]
+        - !Ref UISecurityGroup
+      SubnetId:
+        Fn::ImportValue: !Join [ "-", [ !Ref NetworkStackName, "subnet-a" ] ]
+  UISecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "Application server security group, allowing SSH from anywhere and HTTP from the load balancer security group"
+      SecurityGroupIngress:
+        -
+          CidrIp: 90.194.73.12/32
+          IpProtocol: "tcp"
+          FromPort: 8153
+          ToPort: 8153
+      VpcId:
+        Fn::ImportValue: !Join [ "-", [ !Ref NetworkStackName, "vpc" ] ]
