@@ -67,6 +67,11 @@ Resources:
       Port: 443
       Protocol: "HTTPS"
 Outputs:
+  ELB:
+    Description: "The resource name of the application load balancer"
+    Value: !Ref ELB
+    Export:
+      Name: !Join [ "-", [ !Ref "AWS::StackName", "elb-resource-name" ] ]
   ELBDNSName:
     Description: "The DNSName of the application load balancer"
     Value: !GetAtt ELB.DNSName

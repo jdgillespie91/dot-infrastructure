@@ -13,11 +13,12 @@ Prerequisites include
 - `Packer`__ (version 0.12.3)
 - network_ stack
 
-First, create the `AMI`__ that will be used in the `CloudFormation`__ templates
+First, create both `AMIs`__ that will be used in the `CloudFormation`__ templates
 
 .. code-block:: bash
 
-    $ packer build -var 'aws_access_key=...' -var 'aws_secret_key=...' ami.json
+    $ packer build -var 'aws_access_key=...' -var 'aws_secret_key=...' go-server-ami.json
+    $ packer build -var 'aws_access_key=...' -var 'aws_secret_key=...' go-agent-ami.json
 
 Then launch a stack using the following template:
 

@@ -4,17 +4,63 @@ Parameters:
   NetworkStackName:
     Description: "The name of the stack that contains the networking resources to be used in this stack"
     Type: "String"
-  GoCDAMI:
-    Description: "The AMI ID of the GoCD AMI"
+  ApplicationStackName:
+    Description: "The name of the stack that contains the application resources to be used in this stack"
+    Type: "String"
+  GoServerAMI:
+    Description: "The ID of the GoCD Server AMI"
+    Type: "String"
+  GoAgentAMI:
+    Description: "The ID of the GoCD Agent AMI"
     Type: "String"
 Resources:
-  EC2Instance:
+  Server:
     Type: "AWS::EC2::Instance"
     Properties:
       AvailabilityZone: "eu-west-2a"
-      ImageId: !Ref GoCDAMI
+      ImageId: !Ref GoServerAMI
       InstanceInitiatedShutdownBehavior: "terminate"
       InstanceType: "t2.medium"
+      KeyName: "jakegillespie"
+      SecurityGroupIds:
+        - !Ref UISecurityGroup
+      SubnetId:
+        Fn::ImportValue: !Join [ "-", [ !Ref NetworkStackName, "subnet-a" ] ]
+  TargetGroup:
+    Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
+    Properties:
+      HealthCheckIntervalSeconds: 15
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      Port: 8153
+      Protocol: "HTTP"
+      Targets:
+        -
+          Id: !Ref Server
+          Port: 8153
+      UnhealthyThresholdCount: 2
+      VpcId:
+        Fn::ImportValue: !Join [ "-", [ !Ref NetworkStackName, "vpc" ] ]
+  Listener:
+    Type: "AWS::ElasticLoadBalancingV2::Listener"
+    Properties:
+      Certificates:
+        - CertificateArn: !ImportValue "certificate"
+      DefaultActions:
+        -
+          TargetGroupArn: !Ref TargetGroup
+          Type: "forward"
+      LoadBalancerArn:
+        Fn::ImportValue: !Join [ "-", [ !Ref ApplicationStackName, "elb-resource-name" ] ]
+      Port: 8153
+      Protocol: "HTTPS"
+  Agent:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      AvailabilityZone: "eu-west-2a"
+      ImageId: !Ref GoAgentAMI
+      InstanceInitiatedShutdownBehavior: "terminate"
+      InstanceType: "t2.small"
       KeyName: "jakegillespie"
       SecurityGroupIds:
         - Fn::ImportValue: !Join [ "-", [ !Ref NetworkStackName, "server-security-group" ] ]
