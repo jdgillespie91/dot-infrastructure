@@ -7,6 +7,12 @@ Parameters:
   ApplicationAMI:
     Description: "The AMI ID of the application AMI"
     Type: "String"
+  GoServerAMI:
+    Description: "The ID of the GoCD Server AMI"
+    Type: "String"
+  GoAgentAMI:
+    Description: "The ID of the GoCD Agent AMI"
+    Type: "String"
 Resources:
   EC2Instance:
     Type: "AWS::EC2::Instance"
@@ -54,6 +60,20 @@ Resources:
       LoadBalancerArn: !Ref ELB
       Port: 80
       Protocol: "HTTP"
+  ServerListenerRule:
+    Type: "AWS::ElasticLoadBalancingV2::ListenerRule"
+    Properties:
+      Actions:
+        -
+          TargetGroupArn: !Ref ServerTargetGroup
+          Type: "forward"
+      Conditions:
+        -
+          Field: 'path-pattern'
+          Values:
+            - "/go/*"
+      ListenerArn: !Ref Listener
+      Priority: 1
   SecureListener:
     Type: "AWS::ElasticLoadBalancingV2::Listener"
     Properties:
@@ -66,12 +86,76 @@ Resources:
       LoadBalancerArn: !Ref ELB
       Port: 443
       Protocol: "HTTPS"
+  ServerSecureListenerRule:
+    Type: "AWS::ElasticLoadBalancingV2::ListenerRule"
+    Properties:
+      Actions:
+        -
+          TargetGroupArn: !Ref ServerTargetGroup
+          Type: "forward"
+      Conditions:
+        -
+          Field: 'path-pattern'
+          Values:
+            - "/go/*"
+      ListenerArn: !Ref SecureListener
+      Priority: 1
+  ServerEC2:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      AvailabilityZone: "eu-west-2a"
+      ImageId: !Ref GoServerAMI
+      InstanceInitiatedShutdownBehavior: "terminate"
+      InstanceType: "t2.medium"
+      KeyName: "jakegillespie"
+      SecurityGroupIds:
+        - Fn::ImportValue: !Join [ "-", [ !Ref NetworkStackName, "server-security-group" ] ]
+        - !Ref ServerSecurityGroup
+      SubnetId:
+        Fn::ImportValue: !Join [ "-", [ !Ref NetworkStackName, "subnet-a" ] ]
+  ServerSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "Allows 8153 traffic from the load balancer"
+      SecurityGroupIngress:
+        -
+          SourceSecurityGroupId:
+            Fn::ImportValue: !Join [ "-", [ !Ref NetworkStackName, "load-balancer-security-group" ] ]
+          IpProtocol: "tcp"
+          FromPort: 8153
+          ToPort: 8153
+      VpcId:
+        Fn::ImportValue: !Join [ "-", [ !Ref NetworkStackName, "vpc" ] ]
+  AgentEC2:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      AvailabilityZone: "eu-west-2a"
+      ImageId: !Ref GoAgentAMI
+      InstanceInitiatedShutdownBehavior: "terminate"
+      InstanceType: "t2.small"
+      KeyName: "jakegillespie"
+      SecurityGroupIds:
+        - Fn::ImportValue: !Join [ "-", [ !Ref NetworkStackName, "server-security-group" ] ]
+      SubnetId:
+        Fn::ImportValue: !Join [ "-", [ !Ref NetworkStackName, "subnet-a" ] ]
+  ServerTargetGroup:
+    Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
+    Properties:
+      HealthCheckIntervalSeconds: 15
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      Matcher:
+        HttpCode: '200-399'
+      Port: 8153
+      Protocol: "HTTP"
+      Targets:
+        -
+          Id: !Ref ServerEC2
+          Port: 8153
+      UnhealthyThresholdCount: 2
+      VpcId:
+        Fn::ImportValue: !Join [ "-", [ !Ref NetworkStackName, "vpc" ] ]
 Outputs:
-  ELB:
-    Description: "The resource name of the application load balancer"
-    Value: !Ref ELB
-    Export:
-      Name: !Join [ "-", [ !Ref "AWS::StackName", "elb-resource-name" ] ]
   ELBDNSName:
     Description: "The DNSName of the application load balancer"
     Value: !GetAtt ELB.DNSName

@@ -47,43 +47,38 @@ Resources:
       DestinationCidrBlock: "0.0.0.0/0"
       GatewayId: !Ref InternetGateway
       RouteTableId: !Ref RouteTable
-  ServerSecurityGroup:
+  SSHSecurityGroup:
     Type: "AWS::EC2::SecurityGroup"
     Properties:
-      GroupDescription: "Application server security group, allowing SSH from anywhere and HTTP from the load balancer security group"
+      GroupDescription: "Allows SSH traffic from anywhere"
       SecurityGroupIngress:
         -
           CidrIp: 0.0.0.0/0
           IpProtocol: "tcp"
           FromPort: 22
           ToPort: 22
-        -
-          SourceSecurityGroupId:
-            Ref: ELBSecurityGroup
-          IpProtocol: "tcp"
-          FromPort: 80
-          ToPort: 80
       VpcId: !Ref VPC
-  ELBSecurityGroup:
+  HTTPSecurityGroup:
     Type: "AWS::EC2::SecurityGroup"
     Properties:
-      GroupDescription: "Load balancer security group, allowing HTTP and HTTPS from anywhere"
+      GroupDescription: "Allows HTTP traffic from anywhere"
       SecurityGroupIngress:
         -
           CidrIp: 0.0.0.0/0
           IpProtocol: "tcp"
           FromPort: 80
           ToPort: 80
+      VpcId: !Ref VPC
+  HTTPSSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "Allows HTTPS traffic from anywhere"
+      SecurityGroupIngress:
         -
           CidrIp: 0.0.0.0/0
           IpProtocol: "tcp"
           FromPort: 443
           ToPort: 443
-        -
-          CidrIp: 0.0.0.0/0
-          IpProtocol: "tcp"
-          FromPort: 8153
-          ToPort: 8153
       VpcId: !Ref VPC
 Outputs:
   VPC:
@@ -101,13 +96,18 @@ Outputs:
     Value: !Ref SubnetB
     Export:
       Name: !Join [ "-", [ !Ref "AWS::StackName", "subnet-b" ] ]
-  ServerSecurityGroup:
-    Description: "The application server security group"
+  SSHSecurityGroup:
+    Description: "The SSH security group"
     Value: !Ref ServerSecurityGroup
     Export:
-      Name: !Join [ "-", [ !Ref "AWS::StackName", "server-security-group" ] ]
-  ELBSecurityGroup:
-    Description: "The load balancer security group"
-    Value: !Ref ELBSecurityGroup
+      Name: !Join [ "-", [ !Ref "AWS::StackName", "ssh-security-group" ] ]
+  HTTPSecurityGroup:
+    Description: "The HTTP security group"
+    Value: !Ref ServerSecurityGroup
     Export:
-      Name: !Join [ "-", [ !Ref "AWS::StackName", "load-balancer-security-group" ] ]
+      Name: !Join [ "-", [ !Ref "AWS::StackName", "http-security-group" ] ]
+  HTTPSSecurityGroup:
+    Description: "The HTTPS security group"
+    Value: !Ref ServerSecurityGroup
+    Export:
+      Name: !Join [ "-", [ !Ref "AWS::StackName", "https-security-group" ] ]
