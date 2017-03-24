@@ -1,0 +1,9 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "A global certificate for jakegillespie.me"
+Resources:
+  Certificate:
+    Type: "AWS::CertificateManager::Certificate"
+    Properties:
+      DomainName: "jakegillespie.me"
+      SubjectAlternativeNames:
+        - "*.jakegillespie.me"
