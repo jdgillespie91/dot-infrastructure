@@ -14,7 +14,7 @@ Parameters:
     Description: "The ID of the GoCD Agent AMI"
     Type: "String"
 Resources:
-  Server:
+  ServerEC2:
     Type: "AWS::EC2::Instance"
     Properties:
       AvailabilityZone: "eu-west-2a"
@@ -23,38 +23,10 @@ Resources:
       InstanceType: "t2.medium"
       KeyName: "jakegillespie"
       SecurityGroupIds:
-        - !Ref UISecurityGroup
+        - Fn::ImportValue: !Join [ "-", [ !Ref NetworkStackName, "load-balancer-security-group" ] ]
       SubnetId:
         Fn::ImportValue: !Join [ "-", [ !Ref NetworkStackName, "subnet-a" ] ]
-  TargetGroup:
-    Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
-    Properties:
-      HealthCheckIntervalSeconds: 15
-      HealthCheckTimeoutSeconds: 5
-      HealthyThresholdCount: 2
-      Port: 8153
-      Protocol: "HTTP"
-      Targets:
-        -
-          Id: !Ref Server
-          Port: 8153
-      UnhealthyThresholdCount: 2
-      VpcId:
-        Fn::ImportValue: !Join [ "-", [ !Ref NetworkStackName, "vpc" ] ]
-  Listener:
-    Type: "AWS::ElasticLoadBalancingV2::Listener"
-    Properties:
-      Certificates:
-        - CertificateArn: !ImportValue "certificate"
-      DefaultActions:
-        -
-          TargetGroupArn: !Ref TargetGroup
-          Type: "forward"
-      LoadBalancerArn:
-        Fn::ImportValue: !Join [ "-", [ !Ref ApplicationStackName, "elb-resource-name" ] ]
-      Port: 8153
-      Protocol: "HTTPS"
-  Agent:
+  AgentEC2:
     Type: "AWS::EC2::Instance"
     Properties:
       AvailabilityZone: "eu-west-2a"
@@ -64,18 +36,22 @@ Resources:
       KeyName: "jakegillespie"
       SecurityGroupIds:
         - Fn::ImportValue: !Join [ "-", [ !Ref NetworkStackName, "server-security-group" ] ]
-        - !Ref UISecurityGroup
       SubnetId:
         Fn::ImportValue: !Join [ "-", [ !Ref NetworkStackName, "subnet-a" ] ]
-  UISecurityGroup:
-    Type: "AWS::EC2::SecurityGroup"
+  ServerTargetGroup:
+    Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
     Properties:
-      GroupDescription: "Application server security group, allowing SSH from anywhere and HTTP from the load balancer security group"
-      SecurityGroupIngress:
+      HealthCheckIntervalSeconds: 15
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      Matcher:
+        HttpCode: '200-399'
+      Port: 8153
+      Protocol: "HTTP"
+      Targets:
         -
-          CidrIp: 90.194.73.12/32
-          IpProtocol: "tcp"
-          FromPort: 8153
-          ToPort: 8153
+          Id: !Ref ServerEC2
+          Port: 8153
+      UnhealthyThresholdCount: 2
       VpcId:
         Fn::ImportValue: !Join [ "-", [ !Ref NetworkStackName, "vpc" ] ]
