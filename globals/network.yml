@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "The network infrastructure for jakegillespie.me."
+Description: "The infrastructure new for jakegillespie.me."
 Resources:
   VPC:
     Type: "AWS::EC2::VPC"

@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "The authentication new for jakegillespie.me."
+Description: "All user-related resources for jakegillespie.me"
 Resources:
   S3ReadOnlyRole:
     Type: "AWS::IAM::Role"
@@ -20,9 +20,3 @@ Resources:
     Properties:
       Roles:
         - !Ref S3ReadOnlyRole
-Outputs:
-  S3ReadOnlyInstanceProfile:
-    Description: "The S3 read-only instance profile"
-    Value: !Ref S3ReadOnlyInstanceProfile
-    Export:
-      Name: "s3-read-only-instance-profile"

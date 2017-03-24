@@ -1,0 +1,15 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "The GoCD agent resources that enable it to support jakegillespie.me."
+Resources:
+  EC2Instance:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      AvailabilityZone: "eu-west-2a"
+      ImageId: !Ref GoAgentAMI
+      InstanceInitiatedShutdownBehavior: "terminate"
+      InstanceType: "t2.small"
+      KeyName: "jakegillespie"
+      SecurityGroupIds:
+        - Fn::ImportValue: !Join [ "-", [ !Ref NetworkStackName, "server-security-group" ] ]
+      SubnetId:
+        Fn::ImportValue: !Join [ "-", [ !Ref NetworkStackName, "subnet-a" ] ]

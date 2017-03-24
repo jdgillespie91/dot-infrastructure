@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "The application infrastructure for jakegillespie.me."
+Description: "The application new for jakegillespie.me."
 Parameters:
   NetworkStackName:
     Description: "The name of the stack that contains the networking resources to be used in this stack"
