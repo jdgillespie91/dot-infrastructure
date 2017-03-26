@@ -56,12 +56,12 @@ Resources:
         -
           Field: 'path-pattern'
           Values:
-            - "/go/*"
+            - "/go*"
       ListenerArn:
         Fn::ImportValue: !Sub "${AppStackName}-insecure-listener"
       Priority: 1
 
-  ServerSecureListenerRule:
+  SecureListenerRule:
     Type: "AWS::ElasticLoadBalancingV2::ListenerRule"
     Properties:
       Actions:
@@ -72,7 +72,7 @@ Resources:
         -
           Field: 'path-pattern'
           Values:
-            - "/go/*"
+            - "/go*"
       ListenerArn:
         Fn::ImportValue: !Sub "${AppStackName}-secure-listener"
       Priority: 1
