@@ -23,9 +23,22 @@ Resources:
       KeyName: "jakegillespie"
       SecurityGroupIds:
         - Fn::ImportValue: !Sub "${SecurityGroupsStackName}-allow-ssh"
-        - Fn::ImportValue: !Sub "${SecurityGroupsStackName}-allow-http"
+        - !Ref InstanceSecurityGroup
       SubnetId:
         Fn::ImportValue: !Sub "${SecurityGroupsStackName}-subnet-a"
+
+  InstanceSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "Allows traffic on 80 from the load balancer security group"
+      SecurityGroupIngress:
+        -
+          SourceSecurityGroupId: !Ref SecurityGroup
+          IpProtocol: "tcp"
+          FromPort: 80
+          ToPort: 80
+      VpcId:
+        Fn::ImportValue: !Sub "${SecurityGroupsStackName}-vpc"
 
   ApplicationLoadBalancer:
     Type: "AWS::ElasticLoadBalancingV2::LoadBalancer"
