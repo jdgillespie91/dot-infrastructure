@@ -1,6 +1,18 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: "The GoCD agent resources that enable it to support jakegillespie.me."
+
+Parameters:
+
+  AppStackName:
+    Type: String
+    Description: "The name of the parent app stack"
+
+  GoAgentAMI:
+    Type: String
+    Description: "The ID of the GoCD Agent AMI"
+
 Resources:
+
   EC2Instance:
     Type: "AWS::EC2::Instance"
     Properties:
@@ -10,6 +22,6 @@ Resources:
       InstanceType: "t2.small"
       KeyName: "jakegillespie"
       SecurityGroupIds:
-        - Fn::ImportValue: !Join [ "-", [ !Ref NetworkStackName, "server-security-group" ] ]
+        - Fn::ImportValue: !Sub "${AppStackName}-allow-ssh"
       SubnetId:
-        Fn::ImportValue: !Join [ "-", [ !Ref NetworkStackName, "subnet-a" ] ]
+        Fn::ImportValue: !Sub "${AppStackName}-subnet-a"

@@ -1,6 +1,8 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: "All user-related resources for jakegillespie.me"
+
 Resources:
+
   S3ReadOnlyRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -14,7 +16,9 @@ Resources:
             Action: "sts:AssumeRole"
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
-      RoleName: "get-credentials"
+      # TODO Rename this to "get-credentials" when the legacy role has been removed.
+      RoleName: "get-credentials-from-s3"
+
   S3ReadOnlyInstanceProfile:
     Type: "AWS::IAM::InstanceProfile"
     Properties:
