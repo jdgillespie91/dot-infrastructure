@@ -1,6 +1,18 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: "The GoCD server resources that enable it to support jakegillespie.me."
+
+Parameters:
+
+  AppStackName:
+    Type: String
+    Description: "The name of the parent app stack"
+
+  GoServerAMI:
+    Type: String
+    Description: "The ID of the GoCD Server AMI"
+
 Resources:
+
   EC2Instance:
     Type: "AWS::EC2::Instance"
     Properties:
@@ -10,9 +22,11 @@ Resources:
       InstanceType: "t2.medium"
       KeyName: "jakegillespie"
       SecurityGroupIds:
-        - Fn::ImportValue: !Join [ "-", [ !Ref NetworkStackName, "server-security-group" ] ]
+        - Fn::ImportValue: !Sub "${AppStackName}-allow-ssh"
+        - !Ref SecurityGroup
       SubnetId:
-        Fn::ImportValue: !Join [ "-", [ !Ref NetworkStackName, "subnet-a" ] ]
+        Fn::ImportValue: !Sub "${AppStackName}-subnet-a"
+
   TargetGroup:
     Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
     Properties:
@@ -25,11 +39,12 @@ Resources:
       Protocol: "HTTP"
       Targets:
         -
-          Id: !Ref ServerEC2
+          Id: !Ref EC2Instance
           Port: 8153
       UnhealthyThresholdCount: 2
       VpcId:
-        Fn::ImportValue: !Join [ "-", [ !Ref NetworkStackName, "vpc" ] ]
+        Fn::ImportValue: !Sub "${AppStackName}-vpc"
+
   InsecureListenerRule:
     Type: "AWS::ElasticLoadBalancingV2::ListenerRule"
     Properties:
@@ -42,8 +57,10 @@ Resources:
           Field: 'path-pattern'
           Values:
             - "/go/*"
-      ListenerArn: !Ref InsecureListener
+      ListenerArn:
+        Fn::ImportValue: !Sub "${AppStackName}-insecure-listener"
       Priority: 1
+
   ServerSecureListenerRule:
     Type: "AWS::ElasticLoadBalancingV2::ListenerRule"
     Properties:
@@ -56,5 +73,20 @@ Resources:
           Field: 'path-pattern'
           Values:
             - "/go/*"
-      ListenerArn: !Ref SecureListener
+      ListenerArn:
+        Fn::ImportValue: !Sub "${AppStackName}-secure-listener"
       Priority: 1
+
+  SecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "Allows traffic on 8153 from the load balancer security group"
+      SecurityGroupIngress:
+        -
+          SourceSecurityGroupId:
+            Fn::ImportValue: !Sub "${AppStackName}-load-balancer-security-group"
+          IpProtocol: "tcp"
+          FromPort: 8153
+          ToPort: 8153
+      VpcId:
+        Fn::ImportValue: !Sub "${AppStackName}-vpc"

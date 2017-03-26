@@ -1,7 +1,7 @@
 infrastructure
 ==============
 
-This repository contains code relevant to the infrastructure that powers `my personal website`__.
+This repository details how the infrastructure that powers `my personal website`__ can be built.
 
 .. _jakegillespie: https://jakegillespie.me/
 
@@ -10,44 +10,45 @@ __ jakegillespie_
 Usage
 -----
 
-Currently, I'm not aware of the best practice around infrastructure. I'll begin with a very manual deployment process (described below) and will learn through its optimisation.
-
-Prerequisites include
-
-- An IAM user with the `AdminstratorAccess AWS managed policy`__
-- The keys associated with this user
-- `Packer`__ (version 0.12.3)
-
-First, create the `AMI`__ that will be used in the `CloudFormation`__ templates
+In the images_ directory, you'll find a set of Packer_ templates for building the various required AMIs. To build, run
 
 .. code-block:: bash
 
-    $ packer build -var 'aws_access_key=...' -var 'aws_secret_key=...' application-ami.json
+    $ packer build -var 'aws_access_key=<aws_access_key>' -var 'aws_secret_key=<aws_secret_key>' <template>
 
-Then launch the infrastructure. Begin by creating a single stack using each of the following templates:
+In the infrastructure_ directory, you'll find a set of CloudFormation_ templates for creating the various required resources in AWS. Before using the templates, note the following rules:
 
-- auth_
-- certificate_
+- Folder structure corresponds to the resource tier.
+- Lower tiers are dependent on the presence of higher tiers.
+- Resources cannot be shared across a tier.
 
-These are, in some sense, *global* resources.
+This is best explained in a working example. Suppose that we want to create resources for the app_. Since app_ is a subdirectory of security_groups_ and security_groups_ is a subdirectory of infrastructure_, we have to create those resources first. Let's begin with the infrastructure_ templates.
 
-Then create as many stacks as necessary (likely just one) using the network template:
+.. code-block:: bash
 
-- network_
+    $ aws --profile <profile> cloudformation create-stack --stack-name certificate --template-body file://infrastructure/certificate.yml
+    $ aws --profile <profile> cloudformation create-stack --stack-name iam --template-body file://infrastructure/iam.yml
+    $ aws --profile <profile> cloudformation create-stack --stack-name network --template-body file://infrastructure/network.yml
 
-This creates an isolated network in which to bring up other resources. For example, this might be useful when wanting isolated staging and production environments.
+Observe their progress with
 
-Then create as many stacks as desired using the application template (note that you'll need to pass the AMI ID created earlier as a parameter when creating this stack):
+.. code-block:: bash
 
-- application_
+    $ aws --profile <profile> cloudformation describe-stacks
 
-Finally for infrastructure, create a single routes stack using the routes template:
+Once all are complete, create the security_groups_ resources.
 
-- routes_
+.. code-block:: bash
 
-Depending on where your domain is registered, you might need to do some further configuration so that your registrar points to the right name servers. My domain is registered with GoDaddy so `these steps`__ are required.
+    $ aws --profile <profile> cloudformation create-stack --stack-name security-groups --template-body file://infrastructure/security_groups/security_groups.yml --parameters ParameterKey=NetworkStackName,ParameterValue=network
 
-Now, you're ready to configure the application server. On the box, do the following:
+Now, we can create the resources for the app_.
+
+.. code-block:: bash
+
+    $ aws --profile personal cloudformation create-stack --stack-name app --template-body file://infrastructure/security_groups/app/resources.yml --parameters ParameterKey=SecurityGroupsStackName,ParameterValue=security-groups ParameterKey=AppAMI,ParameterValue=ami-4abca92e
+
+Using the same process, create the rest of the resources specified in the infrastructure_ folder. Be sure that parent resources are created successfully before creating their children. You'll then be in a position to configure the application server. On the box, do the following:
 
 - Start by cloning the `projects-api`__ application and running the production configuration.
 
@@ -75,24 +76,14 @@ Now, you're ready to configure the application server. On the box, do the follow
 
     sudo service haproxy restart
 
-Now, everything should work as intended.
+Finally, ensure that your domain is configured correctly. Depending on where your domain is registered, you'll need to ensure your registrar points to the right name servers. My domain is registered with GoDaddy so `these steps`__ are required. At last, everything *should* work as intended!
 
-.. _application: application.yml
-.. _auth: auth.yml
-.. _certificate: certificate.yml
-.. _network: network.yml
-.. _haproxy.cfg: haproxy.cfg
-.. _routes: routes.yml
-.. _iam: https://docs.aws.amazon.com/IAM/latest/UserGuide/getting-started_create-admin-group.html
-.. _packer: https://www.packer.io/intro/getting-started/setup.html
-.. _ami: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIs.html
-.. _cf: https://aws.amazon.com/cloudformation/
+.. _CloudFormation: https://aws.amazon.com/cloudformation/
+.. _Packer: https://www.packer.io/
+.. _app: infrastructure/security_groups/app
 .. _godaddy_ns: https://uk.godaddy.com/help/set-custom-nameservers-for-domains-registered-with-godaddy-12317
-.. _projects: https://github.com/jdgillespie91/projects-api/
+.. _images: images
+.. _infrastructure: infrastructure
+.. _security_groups: infrastructure/security_groups
 
-__ iam_
-__ packer_
-__ ami_
-__ cf_
 __ godaddy_ns_
-__ projects_

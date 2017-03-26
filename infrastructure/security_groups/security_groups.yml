@@ -1,0 +1,90 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "The global security groups for jakegillespie.me."
+
+Parameters:
+
+  NetworkStackName:
+    Type: String
+    Description: "The name of the parent network stack"
+
+Resources:
+
+  SSHSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "Allows SSH traffic from anywhere"
+      SecurityGroupIngress:
+        -
+          CidrIp: 0.0.0.0/0
+          IpProtocol: "tcp"
+          FromPort: 22
+          ToPort: 22
+      VpcId:
+        Fn::ImportValue: !Sub "${NetworkStackName}-vpc"
+
+  HTTPSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "Allows HTTP traffic from anywhere"
+      SecurityGroupIngress:
+        -
+          CidrIp: 0.0.0.0/0
+          IpProtocol: "tcp"
+          FromPort: 80
+          ToPort: 80
+      VpcId:
+        Fn::ImportValue: !Sub "${NetworkStackName}-vpc"
+
+  HTTPSSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "Allows HTTPS traffic from anywhere"
+      SecurityGroupIngress:
+        -
+          CidrIp: 0.0.0.0/0
+          IpProtocol: "tcp"
+          FromPort: 443
+          ToPort: 443
+      VpcId:
+        Fn::ImportValue: !Sub "${NetworkStackName}-vpc"
+
+Outputs:
+
+  SSHSecurityGroup:
+    Description: "The ID of the SSH security group"
+    Value: !Ref SSHSecurityGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-allow-ssh"
+
+  HTTPSecurityGroup:
+    Description: "The ID of the HTTP security group"
+    Value: !Ref HTTPSecurityGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-allow-http"
+
+  HTTPSSecurityGroup:
+    Description: "The ID of the HTTPS security group"
+    Value: !Ref HTTPSSecurityGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-allow-https"
+
+  VPC:
+    Description: "The VPC ID"
+    Value:
+      Fn::ImportValue: !Sub "${NetworkStackName}-vpc"
+    Export:
+      Name: !Sub "${AWS::StackName}-vpc"
+
+  SubnetA:
+    Description: "The ID of subnet A"
+    Value:
+      Fn::ImportValue: !Sub "${NetworkStackName}-subnet-a"
+    Export:
+      Name: !Sub "${AWS::StackName}-subnet-a"
+
+  SubnetB:
+    Description: "The ID of subnet B"
+    Value:
+      Fn::ImportValue: !Sub "${NetworkStackName}-subnet-b"
+    Export:
+      Name: !Sub "${AWS::StackName}-subnet-b"

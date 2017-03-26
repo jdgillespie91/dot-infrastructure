@@ -1,0 +1,139 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "The app infrastructure for jakegillespie.me."
+
+Parameters:
+
+  AppAMI:
+    Type: String
+    Description: "The ID of the app AMI"
+
+  SecurityGroupsStackName:
+    Type: String
+    Description: "The name of the parent security groups stack"
+
+Resources:
+
+  EC2Instance:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      AvailabilityZone: "eu-west-2a"
+      ImageId: !Ref AppAMI
+      InstanceInitiatedShutdownBehavior: "terminate"
+      InstanceType: "t2.micro"
+      KeyName: "jakegillespie"
+      SecurityGroupIds:
+        - Fn::ImportValue: !Sub "${SecurityGroupsStackName}-allow-ssh"
+        - Fn::ImportValue: !Sub "${SecurityGroupsStackName}-allow-http"
+      SubnetId:
+        Fn::ImportValue: !Sub "${SecurityGroupsStackName}-subnet-a"
+
+  ApplicationLoadBalancer:
+    Type: "AWS::ElasticLoadBalancingV2::LoadBalancer"
+    Properties:
+      SecurityGroups:
+        - Fn::ImportValue: !Sub "${SecurityGroupsStackName}-allow-http"
+        - Fn::ImportValue: !Sub "${SecurityGroupsStackName}-allow-https"
+        - !Ref SecurityGroup
+      Subnets:
+        - Fn::ImportValue: !Sub "${SecurityGroupsStackName}-subnet-a"
+        - Fn::ImportValue: !Sub "${SecurityGroupsStackName}-subnet-b"
+
+  SecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "The load balancer security group"
+      VpcId:
+        Fn::ImportValue: !Sub "${SecurityGroupsStackName}-vpc"
+
+  TargetGroup:
+    Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
+    Properties:
+      HealthCheckIntervalSeconds: 15
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      Port: 80
+      Protocol: "HTTP"
+      Targets:
+        -
+          Id: !Ref EC2Instance
+          Port: 80
+      UnhealthyThresholdCount: 2
+      VpcId:
+        Fn::ImportValue: !Sub "${SecurityGroupsStackName}-vpc"
+
+  InsecureListener:
+    Type: "AWS::ElasticLoadBalancingV2::Listener"
+    Properties:
+      DefaultActions:
+        -
+          TargetGroupArn: !Ref TargetGroup
+          Type: "forward"
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
+      Port: 80
+      Protocol: "HTTP"
+
+  SecureListener:
+    Type: "AWS::ElasticLoadBalancingV2::Listener"
+    Properties:
+      Certificates:
+        - CertificateArn: !ImportValue "certificate"
+      DefaultActions:
+        -
+          TargetGroupArn: !Ref TargetGroup
+          Type: "forward"
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
+      Port: 443
+      Protocol: "HTTPS"
+
+Outputs:
+
+  SecurityGroup:
+    Description: "The load balancer security group"
+    Value: !Ref SecurityGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-load-balancer-security-group"
+
+  InsecureListener:
+    Description: "The HTTP listener for the application load balancer"
+    Value: !Ref InsecureListener
+    Export:
+      Name: !Sub "${AWS::StackName}-insecure-listener"
+
+  SecureListener:
+    Description: "The HTTPS listener for the application load balancer"
+    Value: !Ref SecureListener
+    Export:
+      Name: !Sub "${AWS::StackName}-secure-listener"
+
+  ApplicationLoadBalancerDNS:
+    Description: "The DNS name of the application load balancer"
+    Value: !GetAtt ApplicationLoadBalancer.DNSName
+    Export:
+      Name: !Sub "${AWS::StackName}-load-balancer-dns"
+
+  ApplicationLoadBalancerHostedZone:
+    Description: "The hosted zone ID of the application load balancer"
+    Value: !GetAtt ApplicationLoadBalancer.CanonicalHostedZoneID
+    Export:
+      Name: !Sub "${AWS::StackName}-load-balancer-hosted-zone"
+
+  SSHSecurityGroup:
+    Description: "The VPC ID"
+    Value:
+      Fn::ImportValue: !Sub "${SecurityGroupsStackName}-allow-ssh"
+    Export:
+      Name: !Sub "${AWS::StackName}-allow-ssh"
+
+  VPC:
+    Description: "The VPC ID"
+    Value:
+      Fn::ImportValue: !Sub "${SecurityGroupsStackName}-vpc"
+    Export:
+      Name: !Sub "${AWS::StackName}-vpc"
+
+  SubnetA:
+    Description: "The ID of subnet A"
+    Value:
+      Fn::ImportValue: !Sub "${SecurityGroupsStackName}-subnet-a"
+    Export:
+      Name: !Sub "${AWS::StackName}-subnet-a"
