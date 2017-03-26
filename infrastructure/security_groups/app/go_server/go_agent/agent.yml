@@ -1,0 +1,45 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "The GoCD agent resources that enable it to support jakegillespie.me."
+
+Parameters:
+
+  GoServerStackName:
+    Type: String
+    Description: "The name of the parent app stack"
+
+  GoAgentAMI:
+    Type: String
+    Description: "The ID of the GoCD Agent AMI"
+
+Resources:
+
+  EC2Instance:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      AvailabilityZone: "eu-west-2a"
+      ImageId: !Ref GoAgentAMI
+      InstanceInitiatedShutdownBehavior: "terminate"
+      InstanceType: "t2.small"
+      KeyName: "jakegillespie"
+      SecurityGroupIds:
+        - Fn::ImportValue: !Sub "${GoServerStackName}-allow-ssh"
+        - !Ref SecurityGroup
+      SubnetId:
+        Fn::ImportValue: !Sub "${GoServerStackName}-subnet-a"
+
+  SecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "The GoCD Agent security group"
+      VpcId:
+        Fn::ImportValue: !Sub "${GoServerStackName}-vpc"
+
+  SecurityGroupIngress:
+    Type: "AWS::EC2::SecurityGroupIngress"
+    Properties:
+      GroupId:
+        Fn::ImportValue: !Sub "${GoServerStackName}-security-group"
+      IpProtocol: "tcp"
+      SourceSecurityGroupId: !Ref SecurityGroup
+      FromPort: 8154
+      ToPort: 8154

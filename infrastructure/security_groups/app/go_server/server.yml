@@ -90,3 +90,32 @@ Resources:
           ToPort: 8153
       VpcId:
         Fn::ImportValue: !Sub "${AppStackName}-vpc"
+
+Outputs:
+
+  SecurityGroup:
+    Description: "The GoCD Server security group"
+    Value: !Ref SecurityGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-security-group"
+
+  SSHSecurityGroup:
+    Description: "The VPC ID"
+    Value:
+      Fn::ImportValue: !Sub "${AppStackName}-allow-ssh"
+    Export:
+      Name: !Sub "${AWS::StackName}-allow-ssh"
+
+  VPC:
+    Description: "The VPC ID"
+    Value:
+      Fn::ImportValue: !Sub "${AppStackName}-vpc"
+    Export:
+      Name: !Sub "${AWS::StackName}-vpc"
+
+  SubnetA:
+    Description: "The ID of subnet A"
+    Value:
+      Fn::ImportValue: !Sub "${AppStackName}-subnet-a"
+    Export:
+      Name: !Sub "${AWS::StackName}-subnet-a"
