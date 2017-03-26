@@ -70,7 +70,7 @@ Using the same process, create the rest of the resources specified in the infras
     $ sudo ./bin/run-prod.sh
     $ cd ..
 
-- Then add `haproxy.cfg`_ to :code:`/etc/haproxy/haproxy.cfg` and restart the service.
+- Then add the `haproxy configuration`__ to :code:`/etc/haproxy/haproxy.cfg` and restart the service.
 
 .. code-block:: bash
 
@@ -82,8 +82,12 @@ Finally, ensure that your domain is configured correctly. Depending on where you
 .. _Packer: https://www.packer.io/
 .. _app: infrastructure/security_groups/app
 .. _godaddy_ns: https://uk.godaddy.com/help/set-custom-nameservers-for-domains-registered-with-godaddy-12317
+.. _haproxy: haproxy.cfg
 .. _images: images
 .. _infrastructure: infrastructure
+.. _projects: https://github.com/jdgillespie91/projects-api
 .. _security_groups: infrastructure/security_groups
 
+__ projects_
+__ haproxy_
 __ godaddy_ns_
