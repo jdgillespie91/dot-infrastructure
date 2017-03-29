@@ -7,10 +7,6 @@ Parameters:
     Type: String
     Description: "The name of the parent app stack"
 
-  GoServerIp:
-    Type: String
-    Description: "The IP of the Go Server"
-
   GoAgentAMI:
     Type: String
     Description: "The ID of the GoCD Agent AMI"
@@ -31,10 +27,17 @@ Resources:
       SubnetId:
         Fn::ImportValue: !Sub "${GoServerStackName}-subnet-a"
       UserData:
-        "Fn::Base64": !Sub |
-          #!/bin/bash
-          echo 'GO_SERVER_URL=https://${GoServerIp}:8154/go' | sudo tee --append /etc/default/go-agent
-          sudo /etc/init.d/go-agent restart
+        Fn::Base64:
+          Fn::Join: [
+            "",
+            [
+              "#!/bin/bash\n",
+              "echo 'GO_SERVER_URL=https://",
+              "Fn::ImportValue": !Sub "${GoServerStackName}-ip",
+              ":8154/go' | sudo tee --append /etc/default/go-agent\n",
+              "sudo /etc/init.d/go-agent restart\n"
+            ]
+          ]
 
   SecurityGroup:
     Type: "AWS::EC2::SecurityGroup"
