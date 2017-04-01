@@ -49,6 +49,8 @@ Resources:
           sudo ln -s /data/usr-share-go-server /usr/share/go-server
           sudo rm -r /var/lib/go-server
           sudo ln -s /data/var-lib-go-server /var/lib/go-server
+          sudo rm -r /var/go
+          sudo ln -s /data/var-go /var/go
           sudo /etc/init.d/go-server start
 
   Volume:
