@@ -46,7 +46,7 @@ Now, we can create the resources for the app_.
 
 .. code-block:: bash
 
-    $ aws loudformation create-stack --stack-name app --template-body file://infrastructure/security_groups/app/resources.yml --parameters ParameterKey=SecurityGroupsStackName,ParameterValue=security-groups ParameterKey=AppAMI,ParameterValue=ami-4abca92e
+    $ aws cloudformation create-stack --stack-name app --template-body file://infrastructure/security_groups/app/resources.yml --parameters ParameterKey=SecurityGroupsStackName,ParameterValue=security-groups ParameterKey=AppAMI,ParameterValue=ami-4abca92e
 
 Using the same process, create the rest of the resources specified in the infrastructure_ folder. Be sure that parent resources are created successfully before creating their children. You'll then be in a position to configure the application server. On the box, do the following:
 
