@@ -27,7 +27,7 @@ This is best explained in a working example. Suppose that we want to create reso
 .. code-block:: bash
 
     $ aws cloudformation create-stack --stack-name certificate --template-body file://infrastructure/certificate.yml
-    $ aws cloudformation create-stack --stack-name iam --template-body file://infrastructure/iam.yml
+    $ aws cloudformation create-stack --stack-name iam --template-body file://infrastructure/iam.yml --capabilities CAPABILITY_NAMED_IAM
     $ aws cloudformation create-stack --stack-name network --template-body file://infrastructure/network.yml
 
 Observe their progress with
