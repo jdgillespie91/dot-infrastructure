@@ -14,7 +14,7 @@ In the images_ directory, you'll find a set of Packer_ templates for building th
 
 .. code-block:: bash
 
-    $ packer build -var 'aws_access_key=<aws_access_key>' -var 'aws_secret_key=<aws_secret_key>' <template>
+    $ packer build <template>
 
 In the infrastructure_ directory, you'll find a set of CloudFormation_ templates for creating the various required resources in AWS. Before using the templates, note the following rules:
 
@@ -26,27 +26,27 @@ This is best explained in a working example. Suppose that we want to create reso
 
 .. code-block:: bash
 
-    $ aws --profile <profile> cloudformation create-stack --stack-name certificate --template-body file://infrastructure/certificate.yml
-    $ aws --profile <profile> cloudformation create-stack --stack-name iam --template-body file://infrastructure/iam.yml
-    $ aws --profile <profile> cloudformation create-stack --stack-name network --template-body file://infrastructure/network.yml
+    $ aws cloudformation create-stack --stack-name certificate --template-body file://infrastructure/certificate.yml
+    $ aws cloudformation create-stack --stack-name iam --template-body file://infrastructure/iam.yml
+    $ aws cloudformation create-stack --stack-name network --template-body file://infrastructure/network.yml
 
 Observe their progress with
 
 .. code-block:: bash
 
-    $ aws --profile <profile> cloudformation describe-stacks
+    $ aws cloudformation describe-stacks
 
 Once all are complete, create the security_groups_ resources.
 
 .. code-block:: bash
 
-    $ aws --profile <profile> cloudformation create-stack --stack-name security-groups --template-body file://infrastructure/security_groups/security_groups.yml --parameters ParameterKey=NetworkStackName,ParameterValue=network
+    $ aws cloudformation create-stack --stack-name security-groups --template-body file://infrastructure/security_groups/security_groups.yml --parameters ParameterKey=NetworkStackName,ParameterValue=network
 
 Now, we can create the resources for the app_.
 
 .. code-block:: bash
 
-    $ aws --profile personal cloudformation create-stack --stack-name app --template-body file://infrastructure/security_groups/app/resources.yml --parameters ParameterKey=SecurityGroupsStackName,ParameterValue=security-groups ParameterKey=AppAMI,ParameterValue=ami-4abca92e
+    $ aws loudformation create-stack --stack-name app --template-body file://infrastructure/security_groups/app/resources.yml --parameters ParameterKey=SecurityGroupsStackName,ParameterValue=security-groups ParameterKey=AppAMI,ParameterValue=ami-4abca92e
 
 Using the same process, create the rest of the resources specified in the infrastructure_ folder. Be sure that parent resources are created successfully before creating their children. You'll then be in a position to configure the application server. On the box, do the following:
 
