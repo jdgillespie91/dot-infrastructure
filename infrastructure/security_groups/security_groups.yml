@@ -3,6 +3,10 @@ Description: "The global security groups for jakegillespie.me."
 
 Parameters:
 
+  CertificateStackName:
+    Type: String
+    Description: "The name of the parent certificate stack"
+
   NetworkStackName:
     Type: String
     Description: "The name of the parent network stack"
@@ -49,6 +53,13 @@ Resources:
         Fn::ImportValue: !Sub "${NetworkStackName}-vpc"
 
 Outputs:
+
+  Certificate:
+    Description: "The jakegillespie.me certificate"
+    Value:
+      Fn::ImportValue: !Sub "${CertificateStackName}-certificate"
+    Export:
+      Name: !Sub "${AWS::StackName}-certificate"
 
   SSHSecurityGroup:
     Description: "The ID of the SSH security group"

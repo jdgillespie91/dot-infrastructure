@@ -89,7 +89,8 @@ Resources:
     Type: "AWS::ElasticLoadBalancingV2::Listener"
     Properties:
       Certificates:
-        - CertificateArn: !ImportValue "certificate"
+        - CertificateArn:
+            Fn::ImportValue: !Sub "${SecurityGroupsStackName}-certificate"
       DefaultActions:
         -
           TargetGroupArn: !Ref TargetGroup
